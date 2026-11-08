@@ -1,0 +1,137 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #05070c;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 18%, #16324a 0%, #070b12 58%, #04060a 100%);
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game {
+  display: block;
+  background: #000;
+  /* 1:1 复刻原版：不做圆角、不加外发光/描边。
+   * 之前那套 border-radius + box-shadow 会让画面看起来「缩了一圈」，
+   * 并且四周露出 #app 的深蓝渐变，和原版满屏的效果对不上。 */
+  border-radius: 0;
+  box-shadow: none;
+  touch-action: none;
+  image-rendering: auto;
+}
+
+/* 载入遮罩 = 官方 LoadingScene（assets/ui/loading_scene_bg.png，320×480）
+ * + 官方进度条三件套（bg 黑底 / 填充 / shell 青胶囊连格线）。
+ *
+ * ★ 为什么不用「320×480 整体 scale」：手机屏是 9:19.5，cover 会裁掉上下、
+ *   底部进度条直接裁没；contain 又会在上下留一大块黑。
+ *   这里拆开处理：背景 cover 铺满（女主图裁一点看不出来），
+ *   进度条单独贴屏幕底部、按屏宽等比缩放，任何机型都能看到完整胶囊。 */
+#loading {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  transition: opacity .45s ease;
+}
+#loading.hide { opacity: 0; pointer-events: none; }
+
+#loading .ld-frame {
+  position: absolute;
+  inset: 0;
+}
+
+/* 背景：官方加载场景整图，cover 铺满 */
+#loading .ld-bg {
+  position: absolute;
+  inset: 0;
+  background: url(../assets/ui/loading_scene_bg.png) center center / cover no-repeat;
+}
+
+/* 进度条：贴底、按屏宽等比（素材 320×52） */
+#loading .ld-bar,
+#loading .ld-shell {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100vw * 52 / 320);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+#loading .ld-bar { background-image: url(../assets/ui/loading_bar_bg.png); }
+#loading .ld-shell { background-image: url(../assets/ui/loading_bar_shell.png); }
+
+/* 填充层：单独一层压在 shell 之上（素材实测：shell 未填充段是不透明黑，
+   填充段只留 55% 黑，填充画在下面会被压成暗青，看不出进度）。 */
+#loading .ld-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100vw * 52 / 320);
+}
+/* 胶囊内腔 45~274 / 10~29（素材实测），改百分比适配任意宽度 */
+#loading .ld-fill i {
+  position: absolute;
+  left: 14.06%;       /* 45 / 320 */
+  top: 19.23%;        /* 10 / 52 */
+  display: block;
+  width: 0;
+  height: 36.5%;      /* 19 / 52 */
+  border-radius: 2px;
+  /* 透明度压到 ~0.72：官方进度条被点亮的是「格子」，留一点透明才能透出
+     shell 的竖格线，整条糊成一块实心青反而不像原版。 */
+  background: linear-gradient(180deg, rgba(216,255,255,.80), rgba(104,228,250,.72) 42%, rgba(26,150,206,.72));
+  box-shadow: 0 0 8px rgba(80,230,255,.7);
+  transition: width .18s ease;
+}
+
+/* 旧版自绘元素已不再使用，保留类名只为兼容 */
+#loading .logo, #loading .sub, #loading .bar { display: none; }
+#loading .tip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  font-size: 0;
+  color: transparent;
+}
+
+#errbox {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  max-height: 40%;
+  overflow: auto;
+  padding: 8px 10px;
+  background: rgba(120, 10, 20, .94);
+  color: #ffe8e8;
+  font: 11px/1.5 ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  z-index: 99;
+}
